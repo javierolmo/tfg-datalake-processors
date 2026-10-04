@@ -35,6 +35,30 @@ class CleanerTest extends AnyFlatSpec with Matchers {
     validRow.getInt(validRow.fieldIndex("precio")) shouldEqual 275000
   }
 
+  it should "handle new fields imagen_portada, ascensor, and parking with parseBoolean logic" in {
+    val fotocasaMeta = catalog.findByCatalogItem("fotocasa_properties").get
+    val rawDF = Seq(
+      ("101", "250.000 €", "2026-09-27 14:42:20", "https://img.fotocasa.es/1.jpg", "true", "uncastable_parking"),
+      ("102", "150.000 €", "2026-09-27 14:42:20", null, null, "true")
+    ).toDF("id", "precio", "fecha_scraping", "imagen_portada", "ascensor", "parking")
+
+    val result = Cleaner.validate(rawDF, fotocasaMeta)
+
+    result.invalidRecords.count() shouldEqual 0
+    result.validRecords.count() shouldEqual 2
+
+    val rows = result.validRecords.collect()
+    val row1 = rows.find(_.getAs[Long]("id") == 101L).get
+    row1.getAs[String]("imagen_portada") shouldEqual "https://img.fotocasa.es/1.jpg"
+    row1.getAs[Boolean]("ascensor") shouldBe true
+    row1.getAs[Boolean]("parking") shouldBe false // uncastable -> false
+
+    val row2 = rows.find(_.getAs[Long]("id") == 102L).get
+    row2.isNullAt(row2.fieldIndex("imagen_portada")) shouldBe true
+    row2.getAs[Boolean]("ascensor") shouldBe false // null -> false
+    row2.getAs[Boolean]("parking") shouldBe true
+  }
+
   "Cleaner.validate for Wallapop" should "discard listings with international postal codes like '4900-809'" in {
     val wallapopMeta = catalog.findByCatalogItem("wallapop_properties_2").get
     val rawDF = Seq(
@@ -45,6 +69,30 @@ class CleanerTest extends AnyFlatSpec with Matchers {
 
     result.validRecords.count() shouldEqual 0
     result.invalidRecords.count() shouldEqual 1
+  }
+
+  it should "handle elevator, garage, and parking with alias fallback and default false on null or uncastable" in {
+    val wallapopMeta = catalog.findByCatalogItem("wallapop_properties_2").get
+    val rawDF = Seq(
+      (200, "item-1", "title 1", "2026-08-09T10:00:00.000Z", 28001, "true", null, "uncastable_xyz"),
+      (200, "item-2", "title 2", "2026-08-09T10:00:00.000Z", 28002, null, "true", "true")
+    ).toDF("category_id", "id", "title", "created_at", "location__postal_code", "type_attributes__elevator", "type_attributes__garage", "parking")
+
+    val result = Cleaner.validate(rawDF, wallapopMeta)
+
+    result.invalidRecords.count() shouldEqual 0
+    result.validRecords.count() shouldEqual 2
+
+    val rows = result.validRecords.collect()
+    val row1 = rows.find(_.getAs[String]("id") == "item-1").get
+    row1.getAs[Boolean]("elevator") shouldBe true
+    row1.getAs[Boolean]("garage") shouldBe false // null -> false
+    row1.getAs[Boolean]("parking") shouldBe false // uncastable -> false
+
+    val row2 = rows.find(_.getAs[String]("id") == "item-2").get
+    row2.getAs[Boolean]("elevator") shouldBe false // null -> false
+    row2.getAs[Boolean]("garage") shouldBe true
+    row2.getAs[Boolean]("parking") shouldBe true
   }
 
   "Cleaner.validate for Pisos" should "parse listings when lastUpdateDate has array format '[2026,2,19]'" in {
