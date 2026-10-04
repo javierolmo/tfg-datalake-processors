@@ -6,11 +6,21 @@ import org.apache.spark.sql.types._
 
 object Transformations {
 
-  def removeNonNumeric(inputColumn: Column): Column = regexp_replace(inputColumn, "[^0-9]", "")
+  def removeNonNumeric(inputColumn: Column): Column = regexp_replace(inputColumn.cast(StringType), "[^0-9]", "")
 
   def removeLineBreaks(inputColumn: Column): Column = regexp_replace(inputColumn, "\\n", "")
 
   def millisecondsToTimestamp(inputColumn: Column): Column = from_unixtime(inputColumn / 1000)
+
+  def parseBoolean(inputColumn: Column): Column = parseBooleanWithDefault(false)(inputColumn)
+
+  def parseBooleanWithDefault(default: Boolean)(inputColumn: Column): Column = {
+    val str = trim(lower(inputColumn.cast(StringType)))
+    val parsedBool = when(str.isin("true", "t", "1", "si", "sí", "yes", "y"), lit(true))
+      .when(str.isin("false", "f", "0", "no", "n"), lit(false))
+      .otherwise(inputColumn.try_cast(BooleanType))
+    coalesce(parsedBool, lit(default))
+  }
 
   def parseDate(inputColumn: Column): Column = {
     val strCol = trim(inputColumn.cast(StringType))

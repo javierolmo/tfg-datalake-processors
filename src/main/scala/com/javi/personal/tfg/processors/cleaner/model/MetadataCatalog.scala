@@ -198,7 +198,9 @@ object MetadataCatalog {
       FieldCleaner("latitude", DoubleType),
       FieldCleaner("longitude", DoubleType),
       FieldCleaner("propertyType", StringType),
-      FieldCleaner("location", StringType)
+      FieldCleaner("location", StringType),
+      FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean)),
+      FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean))
     )
   )
 

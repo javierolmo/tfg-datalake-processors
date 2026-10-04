@@ -86,4 +86,28 @@ class CleanerTest extends AnyFlatSpec with Matchers {
     result.validRecords.first().getAs[java.sql.Date]("lastUpdateDate") shouldEqual java.sql.Date.valueOf("2026-02-19")
   }
 
+  it should "handle elevator and parking with default false on null or uncastable, and cast floor to integer" in {
+    val pisosMeta = catalog.findByCatalogItem("pisos_properties").get
+    val rawDF = Seq(
+      ("p-1", "Piso con ascensor", "250.000 €", "2026-02-19", "3", "2", "true", "xyz_uncastable", "4"),
+      ("p-2", "Piso sin ascensor", "180.000 €", "2026-02-19", "2", "1", null, null, "2º")
+    ).toDF("id", "title", "price", "lastUpdateDate", "rooms", "bathrooms", "elevator", "parking", "floor")
+
+    val result = Cleaner.validate(rawDF, pisosMeta)
+
+    result.validRecords.count() shouldEqual 2
+    result.invalidRecords.count() shouldEqual 0
+
+    val rows = result.validRecords.collect()
+    val row1 = rows.find(_.getAs[String]("id") == "p-1").get
+    row1.getAs[Boolean]("elevator") shouldBe true
+    row1.getAs[Boolean]("parking") shouldBe false
+    row1.getAs[Int]("floor") shouldEqual 4
+
+    val row2 = rows.find(_.getAs[String]("id") == "p-2").get
+    row2.getAs[Boolean]("elevator") shouldBe false
+    row2.getAs[Boolean]("parking") shouldBe false
+    row2.getAs[Int]("floor") shouldEqual 2
+  }
+
 }

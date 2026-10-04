@@ -55,6 +55,30 @@ class TransformationsTest extends AnyFlatSpec with Matchers {
     year shouldEqual 2023
   }
 
+  "parseBoolean" should "parse true, 1, and affirmative strings as true" in {
+    for (affirmative <- Seq("true", "TRUE", "True", "1", "si", "sí", "yes", "t")) {
+      val value = executeTransformation(affirmative, Transformations.parseBoolean)
+      value should be (Some(true))
+    }
+  }
+
+  it should "parse false, 0, and negative strings as false" in {
+    for (negative <- Seq("false", "FALSE", "False", "0", "no", "f")) {
+      val value = executeTransformation(negative, Transformations.parseBoolean)
+      value should be (Some(false))
+    }
+  }
+
+  it should "parse null as false" in {
+    val value = executeTransformation(null, Transformations.parseBoolean)
+    value should be (Some(false))
+  }
+
+  it should "parse uncastable strings as false by default" in {
+    val value = executeTransformation("random_uncastable_text", Transformations.parseBoolean)
+    value should be (Some(false))
+  }
+
   private def executeTransformation(input: String, transformation: Column => Column): Option[Any] = {
     val df: DataFrame = Seq(input).toDF("some_field")
     val cleanedDF = df.select(transformation(col("some_field")))

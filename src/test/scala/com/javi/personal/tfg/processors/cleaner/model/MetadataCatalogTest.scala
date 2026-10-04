@@ -1,5 +1,6 @@
 package com.javi.personal.tfg.processors.cleaner.model
 
+import org.apache.spark.sql.types._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -51,6 +52,31 @@ class MetadataCatalogTest extends AnyFlatSpec with Matchers {
       "precio", "provincia", "publicado_hace", "tipo_detalle", "tipo_inmueble",
       "ubicacion", "url"
     )
+  }
+
+  it should "contain pisos_properties in default catalog with elevator, parking, floor and all fields" in {
+    val catalog = MetadataCatalog.default()
+    val pisos = catalog.findByCatalogItem("pisos_properties")
+
+    pisos should be ('defined)
+    val fields = pisos.get.fields
+    val fieldNames = fields.map(_.name)
+    fieldNames should contain theSameElementsAs Seq(
+      "id", "title", "price", "url", "fullDescription", "rooms", "bathrooms",
+      "surface", "floor", "imageUrl", "lastUpdateDate", "latitude", "longitude",
+      "propertyType", "location", "elevator", "parking"
+    )
+
+    val elevatorField = fields.find(_.name == "elevator").get
+    elevatorField.dataType shouldEqual BooleanType
+    elevatorField.transform shouldBe 'defined
+
+    val parkingField = fields.find(_.name == "parking").get
+    parkingField.dataType shouldEqual BooleanType
+    parkingField.transform shouldBe 'defined
+
+    val floorField = fields.find(_.name == "floor").get
+    floorField.dataType shouldEqual IntegerType
   }
 
 }
