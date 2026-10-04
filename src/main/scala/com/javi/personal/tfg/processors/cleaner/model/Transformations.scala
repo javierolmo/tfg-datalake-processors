@@ -22,6 +22,10 @@ object Transformations {
     coalesce(parsedBool, lit(default))
   }
 
+  def extractImageUrl(inputColumn: Column): Column = {
+    regexp_extract(inputColumn.cast(StringType), """(https?://[^\s"',\)\(\]\}]+)""", 1)
+  }
+
   def parseDate(inputColumn: Column): Column = {
     val strCol = trim(inputColumn.cast(StringType))
 

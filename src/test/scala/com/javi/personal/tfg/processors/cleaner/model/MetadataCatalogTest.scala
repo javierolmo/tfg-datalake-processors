@@ -1,50 +1,47 @@
 package com.javi.personal.tfg.processors.cleaner.model
 
-import org.apache.spark.sql.types._
+import org.apache.spark.sql.types.{ArrayType, BooleanType, DoubleType, IntegerType, LongType, StringType, StructField, StructType, TimestampType}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class MetadataCatalogTest extends AnyFlatSpec with Matchers {
 
-  it should "find element by id" in {
-    val metadata1 = CleanerMetadata("1", Seq())
-    val catalog = MetadataCatalog(Seq(
-      metadata1
-    ))
+  "MetadataCatalog.default" should "contain zip_codes in default catalog with correct types" in {
+    val catalog = MetadataCatalog.default()
+    val zipCodes = catalog.findByCatalogItem("zip_codes")
 
-    val result = catalog.findByCatalogItem("1")
+    zipCodes should be ('defined)
+    val fields = zipCodes.get.fields
+    val fieldNames = fields.map(_.name)
+    fieldNames should contain theSameElementsAs Seq(
+      "codigo_postal", "municipio_id", "coordinates", "nombre", "provincia"
+    )
 
-    result.get should be (metadata1)
+    val coordinatesField = fields.find(_.name == "coordinates").get
+    coordinatesField.dataType shouldEqual ArrayType(StructType(Seq(
+      StructField("latitude", DoubleType),
+      StructField("longitude", DoubleType)
+    )))
   }
 
-  it should "throw exception when id is not present" in {
-    val catalog = MetadataCatalog(Seq())
-
-    val result = catalog.findByCatalogItem("1")
-
-    result should be (None)
+  it should "contain all expected datasets in default catalog" in {
+    val catalog = MetadataCatalog.default()
+    catalog.availableIds() should contain theSameElementsAs Seq(
+      "wallapop_properties_old",
+      "wallapop_properties",
+      "fotocasa_properties",
+      "opendatasoft_provincias-espanolas",
+      "pisos_properties",
+      "zipCodes".replaceAll("zipCodes", "zip_codes"),
+      "wallapop_properties_2"
+    )
   }
 
-  it should "get all elements in catalog" in {
-    val metadata1 = CleanerMetadata("1", Seq())
-    val metadata2 = CleanerMetadata("2", Seq())
-    val catalog = MetadataCatalog(Seq(
-      metadata1,
-      metadata2
-    ))
-
-    val result = catalog.availableIds()
-
-    result should contain theSameElementsAs Seq("1", "2")
-  }
-
-  it should "contain fotocasa_properties in default catalog with correct fields including new ones" in {
+  it should "contain fotocasa_properties in default catalog with new fields" in {
     val catalog = MetadataCatalog.default()
     val fotocasa = catalog.findByCatalogItem("fotocasa_properties")
 
     fotocasa should be ('defined)
-    catalog.findByCatalogItem("fotocasa_properties_old") should be (None)
-    catalog.findByCatalogItem("fotocasa_properties_2") should be (None)
     val fields = fotocasa.get.fields
     val fieldNames = fields.map(_.name)
     fieldNames should contain theSameElementsAs Seq(
@@ -66,14 +63,14 @@ class MetadataCatalogTest extends AnyFlatSpec with Matchers {
     imagenField.dataType shouldEqual StringType
   }
 
-  it should "contain wallapop_properties_2 in default catalog with elevator, garage, and parking" in {
+  it should "contain wallapop_properties_2 in default catalog with elevator, garage, parking, and images" in {
     val catalog = MetadataCatalog.default()
     val wallapop = catalog.findByCatalogItem("wallapop_properties_2")
 
     wallapop should be ('defined)
     val fields = wallapop.get.fields
     val fieldNames = fields.map(_.name)
-    fieldNames should contain allOf ("elevator", "garage", "parking")
+    fieldNames should contain allOf ("elevator", "garage", "parking", "images")
 
     val elevatorField = fields.find(_.name == "elevator").get
     elevatorField.dataType shouldEqual BooleanType
@@ -86,6 +83,10 @@ class MetadataCatalogTest extends AnyFlatSpec with Matchers {
     val parkingField = fields.find(_.name == "parking").get
     parkingField.dataType shouldEqual BooleanType
     parkingField.transform shouldBe 'defined
+
+    val imagesField = fields.find(_.name == "images").get
+    imagesField.dataType shouldEqual StringType
+    imagesField.transform shouldBe 'defined
   }
 
   it should "contain pisos_properties in default catalog with elevator, parking, floor and all fields" in {

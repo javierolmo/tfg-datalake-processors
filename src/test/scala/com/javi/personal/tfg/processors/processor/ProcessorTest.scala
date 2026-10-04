@@ -77,6 +77,7 @@ class ProcessorTest extends AnyFlatSpec with Matchers {
     resultDf.count() shouldEqual 1
     resultDf.columns should contain ("id")
     resultDf.columns should contain ("link")
+    resultDf.columns should contain ("image_url")
     resultDf.first().getAs[String]("id") shouldEqual "item-1"
   }
 
@@ -108,7 +109,7 @@ class ProcessorTest extends AnyFlatSpec with Matchers {
       "id", "title", "price", "surface", "rooms", "bathrooms", "link", "source",
       "creation_date", "elevator", "garage", "garden", "city", "country", "postal_code",
       "province", "region", "modification_date", "operation", "pool", "description",
-      "terrace", "type", "latitude", "longitude"
+      "terrace", "type", "latitude", "longitude", "image_url"
     )
     resultDf.first().getAs[String]("id") shouldEqual "190446371"
     resultDf.first().getAs[String]("source") shouldEqual "fotocasa"
@@ -143,6 +144,7 @@ class ProcessorTest extends AnyFlatSpec with Matchers {
       StructField("type", StringType),
       StructField("latitude", DoubleType),
       StructField("longitude", DoubleType),
+      StructField("image_url", StringType),
       StructField("year", IntegerType),
       StructField("month", IntegerType),
       StructField("day", IntegerType)
@@ -151,7 +153,7 @@ class ProcessorTest extends AnyFlatSpec with Matchers {
     val rowData = Row(
       "w-1", "Piso en Sol", 250000, 80, 2, 1, "https://link-1", "wallapop", Date.valueOf("2026-09-01"),
       false, false, false, "Madrid", "ES", 28013, "Madrid", "Comunidad de Madrid",
-      Date.valueOf("2026-09-25"), "SELL", false, "Desc", false, "FLAT", 40.41, -3.70, 2026, 9, 30
+      Date.valueOf("2026-09-25"), "SELL", false, "Desc", false, "FLAT", 40.41, -3.70, "https://img.wallapop.com/item.jpg", 2026, 9, 30
     )
 
     val wallapopGold = spark.createDataFrame(
@@ -183,6 +185,7 @@ class ProcessorTest extends AnyFlatSpec with Matchers {
     schema("creation_date").dataType shouldEqual DateType
     schema("modification_date").dataType shouldEqual DateType
     schema("load_date").dataType shouldEqual DateType
+    schema("image_url").dataType shouldEqual StringType
 
     val row = resultDf.first()
     row.getAs[Date]("creation_date") shouldEqual Date.valueOf("2026-09-01")
@@ -190,6 +193,7 @@ class ProcessorTest extends AnyFlatSpec with Matchers {
     row.getAs[Date]("load_date") shouldEqual Date.valueOf("2026-09-30")
     row.getAs[Int]("price") shouldEqual 250000
     row.getAs[String]("source") shouldEqual "wallapop"
+    row.getAs[String]("image_url") shouldEqual "https://img.wallapop.com/item.jpg"
   }
 
 }
