@@ -6,7 +6,7 @@
 
     <groupId>com.javi.personal</groupId>
     <artifactId>tfg-datalake-processors</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

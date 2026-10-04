@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.1] - 2026-10-04
+### Added
+- Propagación de `image_url` a `properties_full` y soporte para nuevos campos (`elevator`, `garage`, `floor`) en cleaner y processors.
+
 ## [1.5.0] - 2026-10-02
 ### Changed
 - Renombrado del proyecto a `tfg-datalake-processors` y actualización de paquetes base a `com.javi.personal.tfg.processors`.
