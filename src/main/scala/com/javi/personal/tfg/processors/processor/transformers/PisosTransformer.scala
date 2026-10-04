@@ -53,6 +53,19 @@ object PisosTransformer extends Transformer[PisosSources, DataFrame] {
       PropertyTypeStandardizer.fromUrl(col("url"))
     )
 
+    val elevatorCol = if (sanitedPisos.columns.contains("elevator")) col("elevator")
+                      else lit(null).cast(BooleanType)
+    val garageCol = if (sanitedPisos.columns.contains("parking")) col("parking")
+                    else if (sanitedPisos.columns.contains("garage")) col("garage")
+                    else lit(null).cast(BooleanType)
+    val imageUrlCol = if (sanitedPisos.columns.contains("imageUrl")) {
+      when(trim(col("imageUrl")) =!= lit(""), col("imageUrl")).otherwise(lit(null).cast(StringType))
+    } else if (sanitedPisos.columns.contains("image_url")) {
+      when(trim(col("image_url")) =!= lit(""), col("image_url")).otherwise(lit(null).cast(StringType))
+    } else {
+      lit(null).cast(StringType)
+    }
+
     val pisosRenamed = sanitedPisos
       .withColumn(Type, mappedType)
       .drop("propertyType")
@@ -116,8 +129,9 @@ object PisosTransformer extends Transformer[PisosSources, DataFrame] {
     withProvinces
       .withColumn(Source, lit("pisos.com"))
       .withColumn(CreationDate, coalesce(lit(null).cast(DateType), scrapDate))
-      .withColumn(Elevator, lit(null).cast(BooleanType))
-      .withColumn(Garage, lit(null).cast(BooleanType))
+      .withColumn(Elevator, elevatorCol)
+      .withColumn(Garage, garageCol)
+      .withColumn(ImageUrl, imageUrlCol)
       .withColumn(Garden, lit(null).cast(BooleanType))
       .withColumn(Country, lit("ES"))
       .withColumn(Pool, lit(null).cast(BooleanType))

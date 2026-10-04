@@ -121,4 +121,26 @@ class PropertiesFullTransformerTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "propagate image_url from all sources to properties_full" in {
+    val wallapopDf = Seq(
+      ("w-1", "Walla", Date.valueOf("2024-01-01"), 2024, 1, 1, "https://cdn.wallapop.com/1.jpg")
+    ).toDF("id", "title", "modification_date", "year", "month", "day", "image_url")
+
+    val pisosDf = Seq(
+      ("p-1", "Pisos", Date.valueOf("2024-01-01"), 2024, 1, 1, "https://fotos.imghs.net/1.jpg")
+    ).toDF("id", "title", "modification_date", "year", "month", "day", "image_url")
+
+    val fotocasaDf = Seq(
+      ("f-1", "Foto", Date.valueOf("2024-01-01"), 2024, 1, 1, "https://img.fotocasa.es/1.jpg")
+    ).toDF("id", "title", "modification_date", "year", "month", "day", "image_url")
+
+    val result = PropertiesFullTransformer.transform(wallapopDf, pisosDf, fotocasaDf)
+    result.count() shouldEqual 3
+
+    val rows = result.collect().map(r => (r.getAs[String]("id"), r.getAs[String]("image_url"))).toMap
+    rows("w-1") shouldEqual "https://cdn.wallapop.com/1.jpg"
+    rows("p-1") shouldEqual "https://fotos.imghs.net/1.jpg"
+    rows("f-1") shouldEqual "https://img.fotocasa.es/1.jpg"
+  }
+
 }

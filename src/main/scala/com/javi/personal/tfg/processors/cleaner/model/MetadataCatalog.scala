@@ -45,7 +45,7 @@ object MetadataCatalog {
       FieldCleaner("creation_date", TimestampType, transform = Some(Transformations.parseTimestamp)),
       FieldCleaner("currency", StringType),
       FieldCleaner("distance", DoubleType),
-      FieldCleaner("elevator", BooleanType),
+      FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean)),
       FieldCleaner("favorited", BooleanType),
       FieldCleaner("flags__banned", BooleanType),
       FieldCleaner("flags__expired", BooleanType),
@@ -53,15 +53,16 @@ object MetadataCatalog {
       FieldCleaner("flags__pending", BooleanType),
       FieldCleaner("flags__reserved", BooleanType),
       FieldCleaner("flags__sold", BooleanType),
-      FieldCleaner("garage", BooleanType),
+      FieldCleaner("garage", BooleanType, transform = Some(Transformations.parseBoolean)),
       FieldCleaner("garden", BooleanType),
       FieldCleaner("id", StringType),
-      FieldCleaner("images", StringType),
+      FieldCleaner("images", StringType, transform = Some(Transformations.extractImageUrl)),
       FieldCleaner("location__city", StringType),
       FieldCleaner("location__country_code", StringType),
       FieldCleaner("location__postal_code", IntegerType),
       FieldCleaner("modification_date", TimestampType, transform = Some(Transformations.parseTimestamp)),
       FieldCleaner("operation", StringType, filter = Some(_.isNotNull)),
+      FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean)),
       FieldCleaner("pool", BooleanType),
       FieldCleaner("price", DoubleType),
       FieldCleaner("rooms", IntegerType),
@@ -89,7 +90,7 @@ object MetadataCatalog {
       FieldCleaner("created_at", TimestampType, transform = Some(Transformations.parseTimestamp)),
       FieldCleaner("description", StringType),
       FieldCleaner("id", StringType),
-      // FieldCleaner("images", ArrayType(null)),
+      FieldCleaner("images", StringType, transform = Some(Transformations.extractImageUrl)),
       FieldCleaner("location__city", StringType),
       FieldCleaner("location__country_code", StringType),
       FieldCleaner("location__postal_code", IntegerType),
@@ -108,7 +109,10 @@ object MetadataCatalog {
       FieldCleaner("type_attributes__surface", IntegerType),
       FieldCleaner("type_attributes__type", StringType),
       FieldCleaner("user_id", StringType),
-      FieldCleaner("web_slug", StringType)
+      FieldCleaner("web_slug", StringType),
+      FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean)),
+      FieldCleaner("garage", BooleanType, transform = Some(Transformations.parseBoolean)),
+      FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean))
     )
   )
 
@@ -121,7 +125,7 @@ object MetadataCatalog {
       FieldCleaner("creation_date", TimestampType, transform = Some(Transformations.parseTimestamp)),
       FieldCleaner("currency", StringType),
       FieldCleaner("distance", DoubleType),
-      FieldCleaner("elevator", BooleanType),
+      FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean)),
       FieldCleaner("favorited", BooleanType),
       FieldCleaner("flags__banned", BooleanType),
       FieldCleaner("flags__expired", BooleanType),
@@ -129,15 +133,16 @@ object MetadataCatalog {
       FieldCleaner("flags__pending", BooleanType),
       FieldCleaner("flags__reserved", BooleanType),
       FieldCleaner("flags__sold", BooleanType),
-      FieldCleaner("garage", BooleanType),
+      FieldCleaner("garage", BooleanType, transform = Some(Transformations.parseBoolean)),
       FieldCleaner("garden", BooleanType),
       FieldCleaner("id", StringType),
-      FieldCleaner("images", StringType),
+      FieldCleaner("images", StringType, transform = Some(Transformations.extractImageUrl)),
       FieldCleaner("location__city", StringType),
       FieldCleaner("location__country_code", StringType),
       FieldCleaner("location__postal_code", IntegerType),
       FieldCleaner("modification_date", TimestampType, transform = Some(Transformations.parseTimestamp)),
       FieldCleaner("operation", StringType, filter = Some(_.isNotNull)),
+      FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean)),
       FieldCleaner("pool", BooleanType),
       FieldCleaner("price", DoubleType),
       FieldCleaner("rooms", IntegerType),
@@ -177,7 +182,10 @@ object MetadataCatalog {
       FieldCleaner("tipo_detalle", StringType),
       FieldCleaner("tipo_inmueble", StringType),
       FieldCleaner("ubicacion", StringType),
-      FieldCleaner("url", StringType)
+      FieldCleaner("url", StringType),
+      FieldCleaner("imagen_portada", StringType),
+      FieldCleaner("ascensor", BooleanType, transform = Some(Transformations.parseBoolean)),
+      FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean))
     )
   )
 
@@ -198,7 +206,9 @@ object MetadataCatalog {
       FieldCleaner("latitude", DoubleType),
       FieldCleaner("longitude", DoubleType),
       FieldCleaner("propertyType", StringType),
-      FieldCleaner("location", StringType)
+      FieldCleaner("location", StringType),
+      FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean)),
+      FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean))
     )
   )
 
