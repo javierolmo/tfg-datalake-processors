@@ -37,6 +37,22 @@ object WallapopTransformer extends Transformer[WallapopSources, DataFrame] {
       lit(null).cast(DateType)
     }
 
+    val elevatorCol = if (sanitedWallapop.columns.contains("elevator")) col("elevator")
+                      else if (sanitedWallapop.columns.contains("type_attributes__elevator")) col("type_attributes__elevator")
+                      else lit(null).cast(BooleanType)
+    val garageCol = if (sanitedWallapop.columns.contains("garage")) col("garage")
+                    else if (sanitedWallapop.columns.contains("parking")) col("parking")
+                    else if (sanitedWallapop.columns.contains("type_attributes__garage")) col("type_attributes__garage")
+                    else if (sanitedWallapop.columns.contains("type_attributes__parking")) col("type_attributes__parking")
+                    else lit(null).cast(BooleanType)
+    val imageUrlCol = if (sanitedWallapop.columns.contains("images")) {
+                        when(trim(col("images")) =!= lit(""), col("images")).otherwise(lit(null).cast(StringType))
+                      } else if (sanitedWallapop.columns.contains("image_url")) {
+                        when(trim(col("image_url")) =!= lit(""), col("image_url")).otherwise(lit(null).cast(StringType))
+                      } else {
+                        lit(null).cast(StringType)
+                      }
+
     val withProvinceCode = sanitedWallapop
       .withColumn("province_code", (col("location__postal_code").cast(IntegerType) / 1000).cast(IntegerType))
 
@@ -59,11 +75,12 @@ object WallapopTransformer extends Transformer[WallapopSources, DataFrame] {
         withProv.withColumn(Region, col("location__region"))
       }
 
-      withReg.drop(selectCols.map(c => s"prov_$c"): _*)
+      withReg.drop(selectCols.map(c => s"prov_$c"): _*).drop("province_code")
     } else {
       withProvinceCode
         .withColumn(Province, lit(null).cast(StringType))
         .withColumn(Region, col("location__region"))
+        .drop("province_code")
     }
 
     val withCity = if (zipCodes != null && !zipCodes.columns.isEmpty && zipCodes.columns.contains("codigo_postal") && zipCodes.columns.contains("nombre")) {
@@ -97,14 +114,15 @@ object WallapopTransformer extends Transformer[WallapopSources, DataFrame] {
       .withColumn(Source, lit("wallapop"))
       .withColumn(Link, concat(lit("https://es.wallapop.com/item/"), col("web_slug")))
       .withColumn(CreationDate, sanitizeDate(col("created_at"), scrapDate))
-      .withColumn(Elevator, lit(null).cast(BooleanType))
-      .withColumn(Garage, lit(null).cast(BooleanType))
+      .withColumn(Elevator, elevatorCol)
+      .withColumn(Garage, garageCol)
+      .withColumn(ImageUrl, imageUrlCol)
       .withColumn(Garden, lit(null).cast(BooleanType))
       .withColumn(Pool, lit(null).cast(BooleanType))
       .withColumn(Terrace, lit(null).cast(BooleanType))
       .withColumnRenamed("location__latitude", Latitude)
       .withColumnRenamed("location__longitude", Longitude)
-      .drop("province_code", "location__region", "location__city")
+      .drop("location__region", "location__city")
       .dropDuplicates(Title, Price, Description, Surface, Operation)
   }
 

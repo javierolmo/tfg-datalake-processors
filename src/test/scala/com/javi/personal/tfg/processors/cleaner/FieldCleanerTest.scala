@@ -143,7 +143,7 @@ class FieldCleanerTest extends AnyFlatSpec {
     errors.head.getAs[String]("fieldName") shouldEqual "location__postal_code"
   }
 
-  "Regression: Pisos date handling" should "clean date in array format '[2026,2,19]' successfully" in {
+  "Regression: Pisos date handling" should "clean date in array format '[2026,2,19]'" in {
     val input: String = "[2026,2,19]"
     val cleaner = FieldCleaner("lastUpdateDate", DateType, transform = Some(Transformations.parseDate))
 
@@ -229,6 +229,69 @@ class FieldCleanerTest extends AnyFlatSpec {
 
     dataType shouldEqual TimestampType
     value should not be empty
+    errors shouldBe empty
+  }
+
+  "Boolean handling in FieldCleaner" should "clean true string as boolean true" in {
+    val cleaner = FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean))
+    val (dataType, value, errors) = executeCleanerWithErrors("true", cleaner)
+
+    dataType shouldEqual BooleanType
+    value shouldEqual Some(true)
+    errors shouldBe empty
+  }
+
+  it should "clean false string as boolean false" in {
+    val cleaner = FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean))
+    val (dataType, value, errors) = executeCleanerWithErrors("false", cleaner)
+
+    dataType shouldEqual BooleanType
+    value shouldEqual Some(false)
+    errors shouldBe empty
+  }
+
+  it should "clean null as boolean false without errors" in {
+    val cleaner = FieldCleaner("elevator", BooleanType, transform = Some(Transformations.parseBoolean))
+    val (dataType, value, errors) = executeCleanerWithErrors(null, cleaner)
+
+    dataType shouldEqual BooleanType
+    value shouldEqual Some(false)
+    errors shouldBe empty
+  }
+
+  it should "clean uncastable string as boolean false without errors" in {
+    val cleaner = FieldCleaner("parking", BooleanType, transform = Some(Transformations.parseBoolean))
+    val (dataType, value, errors) = executeCleanerWithErrors("uncastable_random_value", cleaner)
+
+    dataType shouldEqual BooleanType
+    value shouldEqual Some(false)
+    errors shouldBe empty
+  }
+
+  "Floor handling in FieldCleaner" should "clean numeric floor string as integer" in {
+    val cleaner = FieldCleaner("floor", IntegerType, transform = Some(Transformations.removeNonNumeric))
+    val (dataType, value, errors) = executeCleanerWithErrors("3", cleaner)
+
+    dataType shouldEqual IntegerType
+    value shouldEqual Some(3)
+    errors shouldBe empty
+  }
+
+  it should "clean floor string with ordinals as integer" in {
+    val cleaner = FieldCleaner("floor", IntegerType, transform = Some(Transformations.removeNonNumeric))
+    val (dataType, value, errors) = executeCleanerWithErrors("3º", cleaner)
+
+    dataType shouldEqual IntegerType
+    value shouldEqual Some(3)
+    errors shouldBe empty
+  }
+
+  it should "clean null floor as None without errors" in {
+    val cleaner = FieldCleaner("floor", IntegerType, transform = Some(Transformations.removeNonNumeric))
+    val (dataType, value, errors) = executeCleanerWithErrors(null, cleaner)
+
+    dataType shouldEqual IntegerType
+    value shouldEqual None
     errors shouldBe empty
   }
 

@@ -269,4 +269,19 @@ class PisosTransformerTest extends AnyFlatSpec with Matchers {
     row.getAs[Date]("modification_date") shouldEqual Date.valueOf("2026-09-30")
   }
 
+  it should "map elevator, parking as garage, and imageUrl as image_url" in {
+    val pisosInput = Seq(
+      ("p-features", "Piso", 100000, "https://www.pisos.com/comprar/piso-vigo/", "Desc", 2, 1, 70, 1, "https://fotos.imghs.net/1.jpg", Date.valueOf("2026-09-27"), 42.235, -8.719, "Piso", "Vigo", true, true)
+    ).toDF(
+      "id", "title", "price", "url", "fullDescription", "rooms", "bathrooms", "surface", "floor", "imageUrl",
+      "lastUpdateDate", "latitude", "longitude", "propertyType", "location", "elevator", "parking"
+    )
+
+    val result = PisosTransformer.transform(pisosInput, spark.emptyDataFrame)
+    val row = result.first()
+    row.getAs[Boolean]("elevator") shouldEqual true
+    row.getAs[Boolean]("garage") shouldEqual true
+    row.getAs[String]("image_url") shouldEqual "https://fotos.imghs.net/1.jpg"
+  }
+
 }

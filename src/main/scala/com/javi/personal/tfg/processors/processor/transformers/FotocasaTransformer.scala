@@ -64,6 +64,20 @@ object FotocasaTransformer extends Transformer[FotocasaSources, DataFrame] {
       PropertyTypeStandardizer.fromUrl(col("url"))
     )
 
+    val elevatorCol = if (sanitedFotocasa.columns.contains("ascensor")) col("ascensor")
+                      else if (sanitedFotocasa.columns.contains("elevator")) col("elevator")
+                      else lit(null).cast(BooleanType)
+    val garageCol = if (sanitedFotocasa.columns.contains("parking")) col("parking")
+                    else if (sanitedFotocasa.columns.contains("garage")) col("garage")
+                    else lit(null).cast(BooleanType)
+    val imageUrlCol = if (sanitedFotocasa.columns.contains("imagen_portada")) {
+      when(trim(col("imagen_portada")) =!= lit(""), col("imagen_portada")).otherwise(lit(null).cast(StringType))
+    } else if (sanitedFotocasa.columns.contains("image_url")) {
+      when(trim(col("image_url")) =!= lit(""), col("image_url")).otherwise(lit(null).cast(StringType))
+    } else {
+      lit(null).cast(StringType)
+    }
+
     val base = sanitedFotocasa
       .withColumn(Id, col("id").cast(StringType))
       .withColumn(Title, lit(null).cast(StringType))
@@ -74,8 +88,9 @@ object FotocasaTransformer extends Transformer[FotocasaSources, DataFrame] {
       .withColumn(Link, col("url"))
       .withColumn(Source, lit("fotocasa"))
       .withColumn(CreationDate, coalesce(lit(null).cast(DateType), scrapDate))
-      .withColumn(Elevator, lit(null).cast(BooleanType))
-      .withColumn(Garage, lit(null).cast(BooleanType))
+      .withColumn(Elevator, elevatorCol)
+      .withColumn(Garage, garageCol)
+      .withColumn(ImageUrl, imageUrlCol)
       .withColumn(Garden, lit(null).cast(BooleanType))
       .withColumn("raw_municipio", col("municipio"))
       .withColumn(Country, lit("ES"))

@@ -41,7 +41,8 @@ class FotocasaProperties(
       StructField(Terrace, BooleanType),
       StructField(Type, StringType),
       StructField(Latitude, DoubleType),
-      StructField(Longitude, DoubleType)
+      StructField(Longitude, DoubleType),
+      StructField(ImageUrl, StringType)
     )
   )
 
@@ -89,4 +90,5 @@ object FotocasaProperties {
   val Latitude = "latitude"
   val LongType = "long_type"
   val Longitude = "longitude"
+  val ImageUrl = "image_url"
 }

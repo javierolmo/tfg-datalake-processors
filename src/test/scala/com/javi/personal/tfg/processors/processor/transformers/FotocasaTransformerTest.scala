@@ -202,4 +202,21 @@ class FotocasaTransformerTest extends AnyFlatSpec with Matchers {
     row.getAs[Date]("modification_date") shouldEqual Date.valueOf("2026-09-30")
   }
 
+  it should "map ascensor as elevator, parking as garage, and imagen_portada as image_url" in {
+    val fotocasaInput = Seq(
+      (1, 0L, 42.0, -8.0, "2026-09-27 10:00:00", 1, 777L, 50, "Vigo", "comprar", 100000, "pontevedra-provincia", "1 DAY", "Flat", "viviendas", "Loc", "https://url", "https://img.fotocasa.es/pic.jpg", true, true)
+    ).toDF(
+      "baños", "coordenadas__accuracy", "coordenadas__latitude", "coordenadas__longitude",
+      "fecha_scraping", "habitaciones", "id", "metros", "municipio", "operacion",
+      "precio", "provincia", "publicado_hace", "tipo_detalle", "tipo_inmueble", "ubicacion", "url",
+      "imagen_portada", "ascensor", "parking"
+    )
+
+    val result = FotocasaTransformer.transform(fotocasaInput)
+    val row = result.first()
+    row.getAs[Boolean]("elevator") shouldEqual true
+    row.getAs[Boolean]("garage") shouldEqual true
+    row.getAs[String]("image_url") shouldEqual "https://img.fotocasa.es/pic.jpg"
+  }
+
 }

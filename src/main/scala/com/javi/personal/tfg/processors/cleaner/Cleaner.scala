@@ -21,7 +21,13 @@ object Cleaner {
   private[cleaner] def validate(inputDF: DataFrame, metadata: CleanerMetadata): ValidationResult = {
 
     val dfWithAllFields = metadata.fields.foldLeft(inputDF) { (df, field) =>
-      if (!df.columns.contains(field.name)) df.withColumn(field.name, lit(null).cast(field.dataType)) else df
+      if (!df.columns.contains(field.name)) {
+        val altName = if (df.columns.contains(s"type_attributes__${field.name}")) Some(s"type_attributes__${field.name}")
+        else if (field.name.startsWith("type_attributes__") && df.columns.contains(field.name.stripPrefix("type_attributes__"))) Some(field.name.stripPrefix("type_attributes__"))
+        else None
+        val initialCol = altName.map(col).getOrElse(lit(null).cast(field.dataType))
+        df.withColumn(field.name, initialCol)
+      } else df
     }
 
     def cleanField(df: DataFrame, field: FieldCleaner): DataFrame = {

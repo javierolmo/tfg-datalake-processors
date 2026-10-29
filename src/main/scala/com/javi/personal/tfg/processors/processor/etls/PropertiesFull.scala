@@ -33,6 +33,7 @@ case class PropertiesFull(
                            `type`: String,
                            latitude: Double,
                            longitude: Double,
+                           image_url: String,
                            load_date: Date
 )
 
