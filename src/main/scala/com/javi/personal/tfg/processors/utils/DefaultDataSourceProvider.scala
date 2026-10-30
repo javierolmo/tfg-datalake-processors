@@ -30,7 +30,7 @@ class DefaultDataSourceProvider extends DataSourceProvider {
   }
 
   private def read(location: StorageAccountLocation, format: String = "parquet")(implicit spark: SparkSession): DataFrame =
-    spark.read.format(format).load(location.url)
+    spark.read.format(format).option("mergeSchema", "true").load(location.url)
 
   private def readOption(location: StorageAccountLocation, format: String = "parquet")(implicit spark: SparkSession): Option[DataFrame] =
     try Some(read(location, format)) catch { case _: Exception => None }

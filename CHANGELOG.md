@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.2] - 2026-10-30
+### Fixed
+- Habilitar `option("mergeSchema", "true")` en `DefaultDataSourceProvider` al leer Parquet. Esto resuelve la inicialización en blanco de columnas ausentes en particiones históricas (como `image_url` en orígenes gold), permitiendo su correcta propagación a `properties_full`.
+
 ## [1.5.1] - 2026-10-04
 ### Added
 - Propagación de `image_url` a `properties_full` y soporte para nuevos campos (`elevator`, `garage`, `floor`) en cleaner y processors.
